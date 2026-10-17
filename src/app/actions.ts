@@ -6,6 +6,7 @@ import { getGuest } from "@/lib/guests";
 import { IG_SKIP_COOKIE, SESSION_COOKIE, getCurrentGuest } from "@/lib/session";
 import { refresh } from "next/cache";
 import { pool } from "@/lib/db";
+import { logEvent } from "@/lib/events";
 import { igSearch, isIgPicUrl, saveInstagram } from "@/lib/instagram";
 import type { IgResult } from "@/components/IgSearch";
 import { createMatch, dealRound, getMatchForMember, revealRound } from "@/lib/games/espia";
@@ -13,6 +14,7 @@ import { addUsedCards, getRoom, resetUsedCards, upsertRoom } from "@/lib/rooms";
 import { type NoteKind, addNote, deleteNote } from "@/lib/social";
 import { type MatchPref, isSingle, setMatchPref, swipe } from "@/lib/match";
 import { type PushSub, removeSubscription, saveSubscription, sendPush } from "@/lib/push";
+import { saveAvatar, updateOwnProfile } from "@/lib/profile";
 
 export async function enter(guestId: string) {
   const guest = await getGuest(guestId);
@@ -24,6 +26,7 @@ export async function enter(guestId: string) {
     path: "/",
     maxAge: 60 * 60 * 24 * 2,
   });
+  await logEvent("entro", guest.id);
   redirect("/");
 }
 
@@ -39,6 +42,7 @@ export async function saveRoom(input: { id?: string; name: string; guestIds: str
   const name = input.name.trim() || funnyNames[Math.floor(Math.random() * funnyNames.length)];
   const id = await upsertRoom({ ...input, name, createdBy: me?.id ?? null });
   if (!id) throw new Error("Sala no encontrada");
+  if (!input.id) await logEvent("sala", me?.id ?? null, null, { name, count: String(input.guestIds.length) });
   refresh();
   return getRoom(id);
 }
@@ -60,6 +64,7 @@ export async function startSpyMatch(input: { roomId: string | null; guestIds: st
     (await upsertRoom({ name: funnyNames[Math.floor(Math.random() * funnyNames.length)], guestIds, createdBy: me.id }));
   if (!roomId) throw new Error("No se pudo crear la sala");
   const matchId = await createMatch(roomId, me.id);
+  await logEvent("espia", me.id, null, { count: String(guestIds.length) });
   redirect(`/juegos/espia/${matchId}`);
 }
 
@@ -91,6 +96,7 @@ export async function completeProfile(input: { nickname: string; name: string; i
     [me.id, [nickname], input.name.trim() || null, input.instagram.trim().replace(/^@/, "") || null, input.gender],
   );
   if (!rowCount) throw new Error("Este cupo ya lo completó otra persona 😅");
+  await logEvent("perfil", me.id, null, { slot: me.nickname, nickname });
   redirect("/");
 }
 
@@ -127,6 +133,7 @@ export async function claimInstagram(result: IgResult) {
     ]);
   }
   await saveInstagram(me.id, result.username, result.fullName, result.pic);
+  await logEvent("perfil", me.id, null, { instagram: result.username, ...(me.placeholder ? { slot: me.nickname } : {}) });
   redirect("/");
 }
 
@@ -141,6 +148,7 @@ export async function addGuestNote(input: { aboutId: string; kind: NoteKind; bod
   const body = input.body.trim().slice(0, input.kind === "apodo" ? 40 : 280);
   if (!body || input.aboutId === me.id || !["apodo", "comentario"].includes(input.kind)) return;
   await addNote({ aboutId: input.aboutId, authorId: me.id, kind: input.kind, body });
+  await logEvent("nota", me.id, input.aboutId, { kind: input.kind, body });
   await sendPush(input.aboutId, {
     title: input.kind === "apodo" ? `🏷️ ${me.nickname} te puso un apodo` : `💬 ${me.nickname} comentó en tu perfil`,
     body: input.kind === "apodo" ? `“${body}”` : body,
@@ -166,6 +174,7 @@ export async function swipeGuest(toId: string, liked: boolean) {
   const matched = await swipe(me.id, other.id, liked);
   // Vos ves el cartel en el momento; al otro le llega la notificación aunque tenga la app cerrada.
   if (matched) {
+    await logEvent("match", me.id, other.id);
     await sendPush(other.id, {
       title: "¡Es un match! 💘",
       body: `A ${me.nickname} también le gustaste 😏`,
@@ -190,5 +199,28 @@ export async function chooseMatchPref(pref: MatchPref) {
   const me = await getCurrentGuest();
   if (!me || !["all", "f", "m"].includes(pref)) throw new Error("Sin sesión");
   await setMatchPref(me.id, pref);
+  refresh();
+}
+
+// Los juegos de un solo celu corren en el cliente: avisan cuando arranca una partida.
+export async function logGameStart(game: "verdad-reto" | "yo-nunca" | "accion-nombre", players: number) {
+  const me = await getCurrentGuest();
+  await logEvent("juego", me?.id ?? null, null, { game, players: String(players) });
+}
+
+// Tu propio perfil (lápiz en /social/[vos]): apodo, nombre y foto.
+export async function updateMyProfile(formData: FormData) {
+  const me = await getCurrentGuest();
+  if (!me) throw new Error("Sin sesión");
+  const nickname = String(formData.get("nickname") ?? "").trim().slice(0, 30);
+  if (!nickname) throw new Error("Poné cómo te dicen 🙏");
+  const name = String(formData.get("name") ?? "").trim().slice(0, 60) || null;
+  await updateOwnProfile(me.id, { nickname, name });
+
+  const photo = formData.get("photo");
+  if (photo instanceof File && photo.size > 0) {
+    if (!photo.type.startsWith("image/") || photo.size > 3_000_000) throw new Error("La foto tiene que ser una imagen de menos de 3 MB");
+    await saveAvatar(me.id, photo.type, Buffer.from(await photo.arrayBuffer()));
+  }
   refresh();
 }

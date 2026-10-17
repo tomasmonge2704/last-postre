@@ -6,6 +6,7 @@ import { getGuest } from "@/lib/guests";
 import { listNotes } from "@/lib/social";
 import { Avatar } from "@/components/Avatar";
 import { NotesWall } from "./NotesWall";
+import { EditProfileButton } from "./EditProfile";
 import { PushPrompt } from "@/components/PushPrompt";
 
 async function Profile({ params }: { params: PageProps<"/social/[id]">["params"] }) {
@@ -21,7 +22,7 @@ async function Profile({ params }: { params: PageProps<"/social/[id]">["params"]
       <div className="flex items-center justify-between">
         <Link href="/social" className="grid size-10 place-items-center rounded-full bg-crema/10 font-bold">‹</Link>
         <p className="font-bold">{isMe ? "Tu perfil" : "Perfil"}</p>
-        <span className="size-10" />
+        {isMe ? <EditProfileButton me={guest} /> : <span className="size-10" />}
       </div>
 
       <section className="mt-6 flex flex-col items-center text-center">

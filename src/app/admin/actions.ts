@@ -132,3 +132,42 @@ export async function deleteGuest(id: string) {
   revalidatePath("/admin");
   redirect("/admin");
 }
+
+// --- Cartas de los juegos ---
+export type CardInput = {
+  game: "verdad-reto" | "yo-nunca" | "accion-nombre";
+  type: "verdad" | "reto" | null;
+  category: string;
+  physical: boolean;
+  emoji: string | null;
+};
+
+// Una carta por línea.
+export async function addCards(input: CardInput, lines: string) {
+  await assertAdmin();
+  const texts = lines.split("\n").map((l) => l.trim()).filter(Boolean);
+  for (const text of texts) {
+    await pool.query(
+      "insert into game_cards (game, type, category, text, physical, emoji) values ($1, $2, $3, $4, $5, $6)",
+      [input.game, input.game === "verdad-reto" ? input.type : null, input.category, text, input.physical, input.emoji || null],
+    );
+  }
+  revalidatePath("/admin/juegos");
+  return texts.length;
+}
+
+export async function updateCard(id: string, patch: { text?: string; active?: boolean; physical?: boolean; category?: string }) {
+  await assertAdmin();
+  await pool.query(
+    `update game_cards set text = coalesce($2, text), active = coalesce($3, active), physical = coalesce($4, physical),
+       category = coalesce($5, category) where id = $1`,
+    [id, patch.text?.trim() || null, patch.active ?? null, patch.physical ?? null, patch.category ?? null],
+  );
+  revalidatePath("/admin/juegos");
+}
+
+export async function deleteCard(id: string) {
+  await assertAdmin();
+  await pool.query("delete from game_cards where id = $1", [id]);
+  revalidatePath("/admin/juegos");
+}

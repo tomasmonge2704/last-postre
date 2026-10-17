@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed": "node --env-file=.env.local scripts/seed.ts",
-    "db:export": "node --env-file=.env.local scripts/export.ts"
+    "db:export": "node --env-file=.env.local scripts/export.ts",
+    "db:cards": "node --env-file=.env.local scripts/seed-cards.ts"
   },
   "dependencies": {
     "@neon/config": "^1.9.2",

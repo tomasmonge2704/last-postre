@@ -9,11 +9,12 @@ import { pickActions, pickTarget } from "@/lib/games/accion-nombre";
 import { PlayersPicker, type Players } from "@/components/PlayersPicker";
 import { BottomSheet } from "@/components/BottomSheet";
 import { Avatar } from "@/components/Avatar";
+import { logGameStart } from "@/app/actions";
 
 type Phase = "ready" | "spinning" | "choose" | "done";
 type Turn = { player: PublicGuest; target: PublicGuest | null; actions: Accion[]; chosen: Accion | null; phase: Phase };
 
-export function AccionNombre({ me, rooms, everyone }: { me: PublicGuest; rooms: Room[]; everyone: PublicGuest[] }) {
+export function AccionNombre({ me, rooms, everyone, acciones }: { me: PublicGuest; rooms: Room[]; everyone: PublicGuest[]; acciones: Accion[] }) {
   const [players, setPlayers] = useState<Players>({ guests: [me], room: null });
   const [selected, setSelected] = useState<AccionCategory[]>(["suave", "fiesta"]);
   const [sheet, setSheet] = useState<"players" | "categories" | null>(null);
@@ -29,6 +30,7 @@ export function AccionNombre({ me, rooms, everyone }: { me: PublicGuest; rooms: 
 
   function start() {
     const list = [...players.guests].sort(() => Math.random() - 0.5);
+    void logGameStart("accion-nombre", list.length);
     setOrder(list);
     setTurnIndex(0);
     setTurn(newTurn(list[0]));
@@ -37,7 +39,7 @@ export function AccionNombre({ me, rooms, everyone }: { me: PublicGuest; rooms: 
   function spin() {
     if (!turn) return;
     const target = pickTarget(turn.player, pool);
-    setTurn({ ...turn, target, actions: target ? pickActions(turn.player, target, selected) : [], phase: "spinning" });
+    setTurn({ ...turn, target, actions: target ? pickActions(turn.player, target, selected, acciones) : [], phase: "spinning" });
   }
 
   function next() {

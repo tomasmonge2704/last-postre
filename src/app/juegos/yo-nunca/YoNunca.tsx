@@ -2,20 +2,22 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { yoNuncaCards, yoNuncaCategories, type YoNuncaCategory } from "@/lib/games/yo-nunca-cards";
+import { yoNuncaCategories, type YoNuncaCard, type YoNuncaCategory } from "@/lib/games/yo-nunca-cards";
 import { BottomSheet } from "@/components/BottomSheet";
+import { logGameStart } from "@/app/actions";
 
 const shuffle = <T,>(list: T[]) => [...list].sort(() => Math.random() - 0.5);
 
-export function YoNunca() {
+export function YoNunca({ cards }: { cards: YoNuncaCard[] }) {
   const [selected, setSelected] = useState<YoNuncaCategory[]>(["clasico", "fiesta"]);
   const [sheet, setSheet] = useState(false);
-  const [deck, setDeck] = useState<typeof yoNuncaCards | null>(null);
+  const [deck, setDeck] = useState<YoNuncaCard[] | null>(null);
   const [index, setIndex] = useState(0);
   const [spins, setSpins] = useState(0);
 
   function start() {
-    setDeck(shuffle(yoNuncaCards.filter((c) => selected.includes(c.category))));
+    void logGameStart("yo-nunca", 0);
+    setDeck(shuffle(cards.filter((c) => selected.includes(c.category))));
     setIndex(0);
   }
 

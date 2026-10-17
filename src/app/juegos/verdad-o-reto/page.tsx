@@ -2,13 +2,14 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentGuest } from "@/lib/session";
 import { listRooms } from "@/lib/rooms";
+import { verdadRetoCards } from "@/lib/cards";
 import { VerdadReto } from "./VerdadReto";
 
 async function Game() {
   const me = await getCurrentGuest();
   if (!me) redirect("/entrar");
-  const rooms = await listRooms(me.id);
-  return <VerdadReto me={me} rooms={rooms} />;
+  const [rooms, cards] = await Promise.all([listRooms(me.id), verdadRetoCards()]);
+  return <VerdadReto me={me} rooms={rooms} cards={cards} />;
 }
 
 export default function VerdadRetoPage() {

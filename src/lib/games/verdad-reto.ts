@@ -1,5 +1,5 @@
 import type { PublicGuest } from "@/lib/guests";
-import { cards, type Card, type CardType, type Category } from "@/lib/games/verdad-reto-cards";
+import { type Card, type CardType, type Category } from "@/lib/games/verdad-reto-cards";
 
 export type Dealt = { card: Card; text: string };
 
@@ -41,6 +41,7 @@ export function deal(
   type: CardType,
   selected: Category[],
   usedIds: Set<string>,
+  cards: Card[],
 ): Dealt | null {
   const pool = cards.filter((c) => c.type === type && selected.includes(c.category));
   const tryFrom = (list: Card[]) => {

@@ -3,13 +3,14 @@ import { redirect } from "next/navigation";
 import { getCurrentGuest } from "@/lib/session";
 import { listEventGuests } from "@/lib/guests";
 import { listRooms } from "@/lib/rooms";
+import { accionCards } from "@/lib/cards";
 import { AccionNombre } from "./AccionNombre";
 
 async function Game() {
   const me = await getCurrentGuest();
   if (!me) redirect("/entrar");
-  const [rooms, everyone] = await Promise.all([listRooms(me.id), listEventGuests()]);
-  return <AccionNombre me={me} rooms={rooms} everyone={everyone} />;
+  const [rooms, everyone, acciones] = await Promise.all([listRooms(me.id), listEventGuests(), accionCards()]);
+  return <AccionNombre me={me} rooms={rooms} everyone={everyone} acciones={acciones} />;
 }
 
 export default function AccionNombrePage() {

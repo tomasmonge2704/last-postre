@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import type { PublicGuest } from "@/lib/guests";
 import type { Room } from "@/lib/rooms";
-import { categories, type CardType, type Category } from "@/lib/games/verdad-reto-cards";
+import { categories, type Card, type CardType, type Category } from "@/lib/games/verdad-reto-cards";
 import { deal, type Dealt } from "@/lib/games/verdad-reto";
-import { clearRoomCards, markCardsUsed } from "@/app/actions";
+import { clearRoomCards, markCardsUsed, logGameStart } from "@/app/actions";
 import { PlayersPicker, type Players } from "@/components/PlayersPicker";
 import { Avatar } from "@/components/Avatar";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -14,7 +14,7 @@ import { BottomSheet } from "@/components/BottomSheet";
 type Sheet = "players" | "categories" | null;
 type Turn = { player: PublicGuest; dealt: (Dealt & { type: CardType }) | null; missing?: CardType };
 
-export function VerdadReto({ me, rooms }: { me: PublicGuest; rooms: Room[] }) {
+export function VerdadReto({ me, rooms, cards }: { me: PublicGuest; rooms: Room[]; cards: Card[] }) {
   const [players, setPlayers] = useState<Players>({ guests: [me], room: null });
   const [selected, setSelected] = useState<Category[]>(["clasico", "fiesta"]);
   const [sheet, setSheet] = useState<Sheet>(null);
@@ -27,6 +27,7 @@ export function VerdadReto({ me, rooms }: { me: PublicGuest; rooms: Room[] }) {
 
   function start() {
     const shuffled = [...players.guests].sort(() => Math.random() - 0.5);
+    void logGameStart("verdad-reto", shuffled.length);
     setOrder(shuffled);
     setTurnIndex(0);
     setUsed(new Set(players.room?.usedCards ?? []));
@@ -35,7 +36,7 @@ export function VerdadReto({ me, rooms }: { me: PublicGuest; rooms: Room[] }) {
 
   function choose(type: CardType) {
     if (!turn || !order) return;
-    const dealt = deal(turn.player, order, type, selected, used);
+    const dealt = deal(turn.player, order, type, selected, used, cards);
     if (dealt) {
       setUsed((u) => new Set(u).add(dealt.card.id));
       if (players.room) markCardsUsed(players.room.id, [dealt.card.id]);

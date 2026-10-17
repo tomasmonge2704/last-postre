@@ -7,13 +7,14 @@ import { leave } from "@/app/actions";
 import { Avatar } from "@/components/Avatar";
 import { MatchBadge } from "./LiveNotifications";
 import { PushPrompt } from "@/components/PushPrompt";
+import { SpicyStrawberry, DevilFlan, LoveMacarons, ShyIceCream, SpyCupcake } from "@/components/DessertArt";
 import { HomeMenu } from "@/components/HomeMenu";
 
 const games = [
-  { href: "/juegos/verdad-o-reto", top: "Verdad o", bottom: "reto", emoji: "😈🍮", bg: "from-flan to-caramelo", ready: true },
-  { href: "/juegos/espia", top: "¿Quién es", bottom: "el espía?", emoji: "🕵️🍸", bg: "from-caramelo to-frutilla", ready: true },
-  { href: "/juegos/accion-y-nombre", top: "Acción y", bottom: "nombre", emoji: "💃🕺", bg: "from-vainilla to-flan", ready: true },
-  { href: "/juegos/yo-nunca", top: "Yo", bottom: "nunca", emoji: "🙈🥃", bg: "from-frutilla to-dulce", ready: true },
+  { href: "/juegos/verdad-o-reto", top: "Verdad o", bottom: "reto", Art: DevilFlan, bg: "from-flan to-caramelo", ready: true },
+  { href: "/juegos/espia", top: "¿Quién es", bottom: "el espía?", Art: SpyCupcake, bg: "from-caramelo to-frutilla", ready: true },
+  { href: "/juegos/accion-y-nombre", top: "Acción y", bottom: "nombre", Art: SpicyStrawberry, bg: "from-vainilla to-flan", ready: true },
+  { href: "/juegos/yo-nunca", top: "Yo", bottom: "nunca", Art: ShyIceCream, bg: "from-frutilla to-dulce", ready: true },
 ];
 
 async function Home() {
@@ -51,7 +52,7 @@ async function Home() {
             <span className="wordmark block text-3xl text-crema">Matcheá con alguien</span>
             <span className="mt-1 block text-sm text-crema/80">Solo solteros 😏</span>
           </span>
-          <span className="text-5xl">💘</span>
+          <LoveMacarons className="-my-3 w-24 shrink-0" />
           <MatchBadge />
         </Link>
         <h2 id="juegos" className="mt-6 scroll-mt-4 text-xl font-bold">Juegos 🎲</h2>
@@ -63,7 +64,7 @@ async function Home() {
               aria-disabled={!g.ready}
               className={`relative flex aspect-[3/4] flex-col justify-between overflow-hidden rounded-3xl border-2 border-crema/40 bg-gradient-to-b ${g.bg} p-3 shadow-[0_5px_0_var(--color-cafe)] transition active:translate-y-1 active:shadow-none ${g.ready ? "" : "pointer-events-none opacity-60"}`}
             >
-              <span className="mt-2 text-center text-5xl leading-tight">{g.emoji}</span>
+              <g.Art className="mx-auto -mt-1 w-[78%] drop-shadow-[0_3px_0_rgba(43,26,16,0.35)]" />
               <p className="wordmark text-center text-[1.6rem] leading-[0.95] text-crema">
                 <span className="text-flan">{g.top}</span>
                 <br />
