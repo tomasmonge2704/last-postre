@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { getCurrentGuest } from "@/lib/session";
 import { leave } from "@/app/actions";
 import { Avatar } from "@/components/Avatar";
@@ -20,6 +21,7 @@ async function Home() {
       </form>
     );
   }
+  if (me.placeholder) redirect("/completar");
   return (
     <>
       <header className="flex items-center justify-between">

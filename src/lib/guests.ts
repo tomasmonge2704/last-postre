@@ -28,6 +28,7 @@ export type PublicGuest = {
   friendGroups: string[];
   gender: "m" | "f";
   partnerId: string | null; // solo para filtrar prendas con terceros
+  placeholder: boolean; // cupo "Amiga de…": completa su perfil al entrar
 };
 
 type GuestRow = {
@@ -40,9 +41,10 @@ type GuestRow = {
   gender: "m" | "f";
   relationship_status: "single" | "taken";
   partner_id: string | null;
+  placeholder: boolean;
 };
 
-const columns = "id, name, nicknames, instagram, avatar_url, friend_groups, gender, relationship_status, partner_id";
+const columns = "id, name, nicknames, instagram, avatar_url, friend_groups, gender, relationship_status, partner_id, placeholder";
 
 function toPublic(row: GuestRow): PublicGuest {
   return {
@@ -55,6 +57,7 @@ function toPublic(row: GuestRow): PublicGuest {
     gender: row.gender,
     // "taken" sin pareja invitada: igual cuenta como de novio/a
     partnerId: row.relationship_status === "taken" ? (row.partner_id ?? "") : null,
+    placeholder: row.placeholder,
   };
 }
 

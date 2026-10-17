@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import type { AdminGuest, IgCandidate } from "@/lib/admin";
 import { Avatar } from "@/components/Avatar";
-import { discardCandidates, pickCandidate, saveProfile } from "../actions";
+import { deleteGuest, discardCandidates, pickCandidate, saveProfile } from "../actions";
 
 type Other = { id: string; nickname: string; avatarUrl: string | null; gender: "m" | "f" };
 
@@ -265,6 +265,18 @@ export function ProfileEditor({
           <ChipsInput values={form.tags} onChange={(v) => set("tags", v)} placeholder="Ej: tímido, bailarín, cumpleañero" prefix="🏷️ " />
         </Row>
       </section>
+
+      <button
+        disabled={pending}
+        onClick={() => {
+          if (confirm(`¿Eliminar a ${guest.nicknames[0] ?? guest.id}? Se borra de salas y partidas.`)) {
+            startTransition(() => deleteGuest(guest.id));
+          }
+        }}
+        className="py-2 font-semibold text-frutilla underline disabled:opacity-50"
+      >
+        🗑️ Se bajó — eliminar invitado
+      </button>
 
       <div className="fixed inset-x-0 bottom-0 flex flex-col items-center gap-2 bg-gradient-to-t from-flan via-flan/90 to-transparent px-4 pt-6 pb-6">
         {status && <p className="rounded-full bg-chocolate px-4 py-1.5 text-sm font-semibold text-crema">{status}</p>}

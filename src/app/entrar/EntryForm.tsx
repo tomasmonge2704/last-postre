@@ -23,7 +23,10 @@ export function EntryForm() {
             <div className="mx-auto w-fit">
               <Avatar guest={candidate} size={96} />
             </div>
-            <p className="mt-4 text-2xl font-bold">¿Seguro que sos vos, {candidate.nickname}? 👀</p>
+            <p className="mt-4 text-2xl font-bold">
+              {candidate.placeholder ? `¿Sos ${candidate.nickname.toLowerCase()}? 👀` : `¿Seguro que sos vos, ${candidate.nickname}? 👀`}
+            </p>
+            {candidate.placeholder && <p className="mt-1 text-crema/60">Entrá y completá tu perfil en 10 segundos.</p>}
             {candidate.instagram && <p className="mt-1 text-crema/60">@{candidate.instagram}</p>}
             <button
               disabled={pending}

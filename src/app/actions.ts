@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getGuest } from "@/lib/guests";
 import { SESSION_COOKIE, getCurrentGuest } from "@/lib/session";
 import { refresh } from "next/cache";
+import { pool } from "@/lib/db";
 import { createMatch, dealRound, getMatchForMember, revealRound } from "@/lib/games/espia";
 import { addUsedCards, getRoom, resetUsedCards, upsertRoom } from "@/lib/rooms";
 
@@ -71,4 +72,19 @@ export async function dealSpyRound(matchId: string) {
 export async function revealSpyRound(matchId: string) {
   await hostMatch(matchId);
   await revealRound(matchId);
+}
+
+// Los cupos "Amiga de…" completan su propio perfil al entrar (una sola vez).
+export async function completeProfile(input: { nickname: string; name: string; instagram: string; gender: "m" | "f" }) {
+  const me = await getCurrentGuest();
+  if (!me) redirect("/entrar");
+  const nickname = input.nickname.trim();
+  if (!nickname) throw new Error("Poné cómo te dicen 🙏");
+  const { rowCount } = await pool.query(
+    `update guests set nicknames = $2, name = $3, instagram = $4, gender = $5, placeholder = false
+     where id = $1 and placeholder`,
+    [me.id, [nickname], input.name.trim() || null, input.instagram.trim().replace(/^@/, "") || null, input.gender],
+  );
+  if (!rowCount) throw new Error("Este cupo ya lo completó otra persona 😅");
+  redirect("/");
 }

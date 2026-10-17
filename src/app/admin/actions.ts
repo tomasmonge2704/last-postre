@@ -119,3 +119,26 @@ export async function discardCandidates(id: string) {
   await pool.query("delete from ig_candidates where guest_id = $1", [id]);
   revalidatePath("/admin");
 }
+
+// Para los que se bajaron: lo saca de salas, partidas y parejas.
+export async function deleteGuest(id: string) {
+  await assertAdmin();
+  const client = await pool.connect();
+  try {
+    await client.query("begin");
+    await client.query("update guests set relationship_status = 'single', partner_id = null where partner_id = $1", [id]);
+    await client.query("update rooms set guest_ids = array_remove(guest_ids, $1)", [id]);
+    await client.query("delete from spy_matches where host_id = $1", [id]);
+    await client.query("delete from spy_roles where guest_id = $1", [id]);
+    await client.query("delete from spy_players where guest_id = $1", [id]);
+    await client.query("delete from guests where id = $1", [id]);
+    await client.query("commit");
+  } catch (error) {
+    await client.query("rollback");
+    throw error;
+  } finally {
+    client.release();
+  }
+  revalidatePath("/admin");
+  redirect("/admin");
+}
