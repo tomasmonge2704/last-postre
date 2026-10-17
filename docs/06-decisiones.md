@@ -43,3 +43,4 @@
 - `public/sw.js` muestra la notificación y, al tocarla, abre el perfil. Las suscripciones van en `push_subscriptions` (`db/008_push.sql`); las que vencen (404/410) se borran solas.
 - Cuando hay match, la push le llega a quien dio el primer like. El que da el segundo ya ve el cartel en pantalla.
 - En iPhone la push solo funciona con la app agregada al inicio (iOS 16.4+), por eso hay `manifest.ts`, los íconos y `appleWebApp`. La tarjeta "🔔 Activar" está en Matcheá.
+- Los avisos flotantes en vivo (`src/app/LiveNotifications.tsx`) cubren matches, apodos y comentarios en tu perfil, con una sola conexión de Realtime. Las consultas se renuevan en `/api/live`. Cuando alguien deja un apodo o comentario también se manda push a quien lo recibe. La tarjeta 🔔 está en el home, en tu perfil y en Matcheá.

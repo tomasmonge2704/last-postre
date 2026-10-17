@@ -11,7 +11,7 @@ function urlBase64ToUint8Array(base64: string) {
   return Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));
 }
 
-// Tarjeta para activar las notificaciones de match. En iPhone primero hay que instalar la app.
+// Tarjeta para activar las notificaciones (matches, apodos, comentarios). En iPhone primero hay que instalar la app.
 export function PushPrompt() {
   const [state, setState] = useState<State>("loading");
   const [busy, setBusy] = useState(false);
@@ -61,16 +61,16 @@ export function PushPrompt() {
       <div className="min-w-0 flex-1 text-sm">
         {state === "ios-install" && (
           <>
-            <p className="font-bold">¿Querés enterarte de tus matches?</p>
+            <p className="font-bold">¿Querés que te avisemos?</p>
             <p className="text-crema/70">
-              Tocá <b>Compartir</b> <span className="inline-block">⬆️</span> → <b>Agregar a inicio</b>, abrí Postre desde ahí y activá los avisos.
+              En Safari tocá <b>≡</b> o <b>•••</b> → <b>Compartir</b> ⬆️ → <b>Agregar a inicio</b>. Después abrí Postre desde el ícono 🍮 y activá los avisos.
             </p>
           </>
         )}
         {state === "off" && (
           <>
-            <p className="font-bold">Enterate de tus matches</p>
-            <p className="text-crema/70">Te avisamos aunque tengas la app cerrada.</p>
+            <p className="font-bold">Activá los avisos 🔔</p>
+            <p className="text-crema/70">Matches, apodos y comentarios, aunque tengas la app cerrada.</p>
           </>
         )}
         {state === "denied" && <p className="text-crema/70">Bloqueaste las notificaciones. Activalas desde los ajustes del navegador.</p>}

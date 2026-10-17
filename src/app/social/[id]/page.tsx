@@ -6,6 +6,7 @@ import { getGuest } from "@/lib/guests";
 import { listNotes } from "@/lib/social";
 import { Avatar } from "@/components/Avatar";
 import { NotesWall } from "./NotesWall";
+import { PushPrompt } from "@/components/PushPrompt";
 
 async function Profile({ params }: { params: PageProps<"/social/[id]">["params"] }) {
   const { id } = await params;
@@ -33,6 +34,8 @@ async function Profile({ params }: { params: PageProps<"/social/[id]">["params"]
           </a>
         )}
       </section>
+
+      {isMe && <PushPrompt />}
 
       <NotesWall aboutId={guest.id} aboutName={guest.nickname} meId={me.id} isMe={isMe} notes={notes} />
     </>

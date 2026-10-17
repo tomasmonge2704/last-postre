@@ -5,7 +5,9 @@ import { cookies } from "next/headers";
 import { IG_SKIP_COOKIE, getCurrentGuest } from "@/lib/session";
 import { leave } from "@/app/actions";
 import { Avatar } from "@/components/Avatar";
-import { MatchBadge } from "./MatchLive";
+import { MatchBadge } from "./LiveNotifications";
+import { PushPrompt } from "@/components/PushPrompt";
+import { HomeMenu } from "@/components/HomeMenu";
 
 const games = [
   { href: "/juegos/verdad-o-reto", top: "Verdad o", bottom: "reto", emoji: "😈🍮", bg: "from-flan to-caramelo", ready: true },
@@ -27,19 +29,32 @@ async function Home() {
   return (
     <>
       <header className="flex items-center justify-between">
-        <Link href="/social" className="w-24 text-sm font-bold whitespace-nowrap text-crema/80">
-          <span className="rounded-full bg-crema/10 px-3 py-2">Social 👀</span>
-        </Link>
+        <div className="w-24">
+          <HomeMenu />
+        </div>
         <h1 className="wordmark text-4xl text-flan">Postre</h1>
-        <form action={leave} className="flex w-24 justify-end">
-          <button className="flex items-center gap-1 rounded-full bg-crema/10 py-1 pr-1 pl-3 text-xs whitespace-nowrap text-crema/70">
-            No soy yo <Avatar guest={me} size={30} />
-          </button>
-        </form>
+        <Link href={`/social/${me.id}`} aria-label="Mi perfil" className="flex w-24 justify-end">
+          <span className="rounded-full border-2 border-flan">
+            <Avatar guest={me} size={38} />
+          </span>
+        </Link>
       </header>
 
-      <section className="mt-8">
-        <h2 className="text-xl font-bold">Para vos, {me.nickname} 🍮</h2>
+      <PushPrompt />
+
+      <section className="mt-6">
+        <Link
+          href="/match"
+          className="relative flex items-center justify-between rounded-3xl border-2 border-crema/40 bg-gradient-to-r from-frutilla to-dulce p-4 shadow-[0_5px_0_var(--color-cafe)] transition active:translate-y-1 active:shadow-none"
+        >
+          <span>
+            <span className="wordmark block text-3xl text-crema">Matcheá con alguien</span>
+            <span className="mt-1 block text-sm text-crema/80">Solo solteros 😏</span>
+          </span>
+          <span className="text-5xl">💘</span>
+          <MatchBadge />
+        </Link>
+        <h2 id="juegos" className="mt-6 scroll-mt-4 text-xl font-bold">Juegos 🎲</h2>
         <div className="mt-3 grid grid-cols-2 gap-3">
           {games.map((g) => (
             <Link
@@ -60,17 +75,6 @@ async function Home() {
             </Link>
           ))}
         </div>
-        <Link
-          href="/match"
-          className="relative mt-4 flex items-center justify-between rounded-3xl border-2 border-crema/40 bg-gradient-to-r from-frutilla to-dulce p-4 shadow-[0_5px_0_var(--color-cafe)] transition active:translate-y-1 active:shadow-none"
-        >
-          <span>
-            <span className="wordmark block text-3xl text-crema">Matcheá con alguien</span>
-            <span className="mt-1 block text-sm text-crema/80">Solo solteros 😏</span>
-          </span>
-          <span className="text-5xl">💘</span>
-          <MatchBadge />
-        </Link>
       </section>
     </>
   );
@@ -78,16 +82,10 @@ async function Home() {
 
 export default function HomePage() {
   return (
-    <main className="flex flex-1 flex-col px-4 pt-4 pb-28">
+    <main className="flex flex-1 flex-col px-4 pt-4 pb-10">
       <Suspense fallback={<p className="m-auto text-4xl">🍮</p>}>
         <Home />
       </Suspense>
-      <Link
-        href="/salas"
-        className="fixed inset-x-0 bottom-6 mx-auto w-fit rounded-full bg-gradient-to-r from-caramelo to-frutilla px-8 py-4 text-lg font-bold text-crema shadow-[0_6px_0_var(--color-cafe)]"
-      >
-        Armar sala 🎉
-      </Link>
     </main>
   );
 }

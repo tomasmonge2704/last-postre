@@ -141,6 +141,12 @@ export async function addGuestNote(input: { aboutId: string; kind: NoteKind; bod
   const body = input.body.trim().slice(0, input.kind === "apodo" ? 40 : 280);
   if (!body || input.aboutId === me.id || !["apodo", "comentario"].includes(input.kind)) return;
   await addNote({ aboutId: input.aboutId, authorId: me.id, kind: input.kind, body });
+  await sendPush(input.aboutId, {
+    title: input.kind === "apodo" ? `🏷️ ${me.nickname} te puso un apodo` : `💬 ${me.nickname} comentó en tu perfil`,
+    body: input.kind === "apodo" ? `“${body}”` : body,
+    url: `/social/${input.aboutId}`,
+    icon: me.avatarUrl ?? undefined,
+  });
   refresh();
 }
 
