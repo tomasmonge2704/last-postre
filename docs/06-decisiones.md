@@ -24,3 +24,22 @@
 ## Pendientes
 - Listado real de invitados y sus etiquetas.
 - Banco de cartas de Verdad o Reto.
+
+## Social (apodos y comentarios)
+- Tabla `guest_notes` (`db/006_social.sql`): `kind` es `apodo` (máx. 40) o `comentario` (máx. 280).
+- `/social` muestra a todo el evento (sin cupos pendientes) con buscador y un contador de notas. `/social/[id]` es el perfil con los apodos como chips y los comentarios con el autor.
+- No podés dejarte notas a vos mismo. Una nota la puede borrar quien la escribió o a quien se la dejaron.
+- Por ahora no es en vivo: se actualiza con `refresh()` al escribir o al recargar.
+
+## Matcheá con alguien
+- Tabla `swipes(from_id, to_id, liked)` (`db/007_match.sql`). Hay match cuando el like es de ida y vuelta, y nadie ve quién le dio like si no hubo match.
+- Solo participan los solteros (`partnerId === null`): quien está de novio/a ve un aviso, y el server también rechaza el swipe.
+- La primera vez que entrás elegís Chicas, Chicos o Todos; se guarda en `guests.match_pref` (`db/009_match_pref.sql`) y no se vuelve a preguntar.
+- El globito 💘 del home se actualiza en vivo con Realtime (`myMatchesQuery`, que se renueva en `/api/match/live`). El cliente de Realtime se movió a `src/lib/realtime.ts` para compartirlo con El Espía.
+- El aviso "¡Es un match!" se escucha en el layout (`src/app/MatchLive.tsx`) con una sola conexión de Realtime, así salta en cualquier pantalla. El globito del home lee del mismo contexto. Solo avisa de los matches nuevos: los que ya había al entrar no generan aviso.
+
+## Notificaciones push (match)
+- Web Push con `web-push` y claves VAPID (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` en `.env.local`). **Hay que cargarlas también en Vercel.**
+- `public/sw.js` muestra la notificación y, al tocarla, abre el perfil. Las suscripciones van en `push_subscriptions` (`db/008_push.sql`); las que vencen (404/410) se borran solas.
+- Cuando hay match, la push le llega a quien dio el primer like. El que da el segundo ya ve el cartel en pantalla.
+- En iPhone la push solo funciona con la app agregada al inicio (iOS 16.4+), por eso hay `manifest.ts`, los íconos y `appleWebApp`. La tarjeta "🔔 Activar" está en Matcheá.

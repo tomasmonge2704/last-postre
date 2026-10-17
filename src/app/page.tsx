@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { IG_SKIP_COOKIE, getCurrentGuest } from "@/lib/session";
 import { leave } from "@/app/actions";
 import { Avatar } from "@/components/Avatar";
+import { MatchBadge } from "./MatchLive";
 
 const games = [
   { href: "/juegos/verdad-o-reto", top: "Verdad o", bottom: "reto", emoji: "😈🍮", bg: "from-flan to-caramelo", ready: true },
@@ -59,6 +60,17 @@ async function Home() {
             </Link>
           ))}
         </div>
+        <Link
+          href="/match"
+          className="relative mt-4 flex items-center justify-between rounded-3xl border-2 border-crema/40 bg-gradient-to-r from-frutilla to-dulce p-4 shadow-[0_5px_0_var(--color-cafe)] transition active:translate-y-1 active:shadow-none"
+        >
+          <span>
+            <span className="wordmark block text-3xl text-crema">Matcheá con alguien</span>
+            <span className="mt-1 block text-sm text-crema/80">Solo solteros 😏</span>
+          </span>
+          <span className="text-5xl">💘</span>
+          <MatchBadge />
+        </Link>
       </section>
     </>
   );

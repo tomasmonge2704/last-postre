@@ -1,13 +1,9 @@
-import { rawSql, createRealtime } from "@neon/realtime/server";
+import { rawSql } from "@neon/realtime/server";
+import { realtime } from "@/lib/realtime";
 import { pool } from "@/lib/db";
 import { places } from "@/lib/games/espia-places";
 
 export const ROUND_MINUTES = 7;
-
-export const realtime = createRealtime({
-  secret: process.env.NEON_REALTIME_SECRET!,
-  db: new URL(process.env.DATABASE_URL!).pathname.slice(1),
-});
 
 // Filas que viajan por Realtime. El lugar y el espía solo aparecen en la revelación.
 export type SpyMatchRow = {

@@ -11,6 +11,8 @@ import type { IgResult } from "@/components/IgSearch";
 import { createMatch, dealRound, getMatchForMember, revealRound } from "@/lib/games/espia";
 import { addUsedCards, getRoom, resetUsedCards, upsertRoom } from "@/lib/rooms";
 import { type NoteKind, addNote, deleteNote } from "@/lib/social";
+import { type MatchPref, isSingle, setMatchPref, swipe } from "@/lib/match";
+import { type PushSub, removeSubscription, saveSubscription, sendPush } from "@/lib/push";
 
 export async function enter(guestId: string) {
   const guest = await getGuest(guestId);
@@ -146,5 +148,41 @@ export async function deleteGuestNote(id: string) {
   const me = await getCurrentGuest();
   if (!me) throw new Error("Sin sesión");
   await deleteNote(id, me.id);
+  refresh();
+}
+
+export async function swipeGuest(toId: string, liked: boolean) {
+  const me = await getCurrentGuest();
+  if (!me) throw new Error("Sin sesión");
+  const other = await getGuest(toId);
+  // Solo entre solteros
+  if (!other || other.id === me.id || !isSingle(me) || !isSingle(other)) return false;
+  const matched = await swipe(me.id, other.id, liked);
+  // Vos ves el cartel en el momento; al otro le llega la notificación aunque tenga la app cerrada.
+  if (matched) {
+    await sendPush(other.id, {
+      title: "¡Es un match! 💘",
+      body: `A ${me.nickname} también le gustaste 😏`,
+      url: `/social/${me.id}`,
+      icon: me.avatarUrl ?? undefined,
+    });
+  }
+  return matched;
+}
+
+export async function subscribePush(sub: PushSub) {
+  const me = await getCurrentGuest();
+  if (!me) throw new Error("Sin sesión");
+  await saveSubscription(me.id, sub);
+}
+
+export async function unsubscribePush(endpoint: string) {
+  await removeSubscription(endpoint);
+}
+
+export async function chooseMatchPref(pref: MatchPref) {
+  const me = await getCurrentGuest();
+  if (!me || !["all", "f", "m"].includes(pref)) throw new Error("Sin sesión");
+  await setMatchPref(me.id, pref);
   refresh();
 }

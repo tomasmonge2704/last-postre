@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentGuest } from "@/lib/session";
+import { leave } from "@/app/actions";
 import { ConnectInstagram } from "./ConnectInstagram";
 
 async function Complete() {
@@ -26,6 +27,9 @@ export default function CompletarPage() {
       <Suspense>
         <Complete />
       </Suspense>
+      <form action={leave} className="mt-auto pt-6 text-center">
+        <button className="py-2 text-sm font-semibold text-cafe/60">← No soy yo, volver a buscarme</button>
+      </form>
     </main>
   );
 }
