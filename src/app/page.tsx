@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { getCurrentGuest } from "@/lib/session";
+import { cookies } from "next/headers";
+import { IG_SKIP_COOKIE, getCurrentGuest } from "@/lib/session";
 import { leave } from "@/app/actions";
 import { Avatar } from "@/components/Avatar";
 
@@ -21,11 +22,13 @@ async function Home() {
       </form>
     );
   }
-  if (me.placeholder) redirect("/completar");
+  if (me.placeholder || (!me.instagram && !(await cookies()).has(IG_SKIP_COOKIE))) redirect("/completar");
   return (
     <>
       <header className="flex items-center justify-between">
-        <span className="w-24" />
+        <Link href="/social" className="w-24 text-sm font-bold whitespace-nowrap text-crema/80">
+          <span className="rounded-full bg-crema/10 px-3 py-2">Social 👀</span>
+        </Link>
         <h1 className="wordmark text-4xl text-flan">Postre</h1>
         <form action={leave} className="flex w-24 justify-end">
           <button className="flex items-center gap-1 rounded-full bg-crema/10 py-1 pr-1 pl-3 text-xs whitespace-nowrap text-crema/70">

@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { pool } from "@/lib/db";
 import { ADMIN_COOKIE } from "@/lib/admin";
+import { igSearch, isIgPicUrl, saveInstagram, type IgResult } from "@/lib/instagram";
+
+export type { IgResult };
 
 async function assertAdmin() {
   const pin = (await cookies()).get(ADMIN_COOKIE)?.value;
@@ -77,7 +80,6 @@ export async function saveProfile(id: string, input: ProfileInput) {
   revalidatePath("/admin");
 }
 
-// Elegir un candidato de Instagram: guarda @, nombre IG y baja la foto a la base.
 export async function pickCandidate(id: string, username: string) {
   await assertAdmin();
   const { rows } = await pool.query<{ full_name: string | null; pic_url: string }>(
@@ -86,31 +88,19 @@ export async function pickCandidate(id: string, username: string) {
   );
   const candidate = rows[0];
   if (!candidate) throw new Error("Candidato no encontrado");
+  await saveInstagram(id, username, candidate.full_name, candidate.pic_url);
+  revalidatePath("/admin");
+}
 
-  const res = await fetch(candidate.pic_url);
-  if (!res.ok) throw new Error("No se pudo bajar la foto (el link de Instagram puede haber vencido)");
-  const bytes = Buffer.from(await res.arrayBuffer());
+export async function searchInstagram(query: string): Promise<IgResult[]> {
+  await assertAdmin();
+  return igSearch(query);
+}
 
-  const client = await pool.connect();
-  try {
-    await client.query("begin");
-    await client.query(
-      `insert into guest_avatars (guest_id, content_type, bytes) values ($1, $2, $3)
-       on conflict (guest_id) do update set content_type = excluded.content_type, bytes = excluded.bytes, updated_at = now()`,
-      [id, res.headers.get("content-type") ?? "image/jpeg", bytes],
-    );
-    await client.query(
-      "update guests set instagram = $2, instagram_name = $3, avatar_url = $4 where id = $1",
-      [id, username, candidate.full_name, `/api/avatars/${id}?v=${Date.now()}`],
-    );
-    await client.query("delete from ig_candidates where guest_id = $1", [id]);
-    await client.query("commit");
-  } catch (error) {
-    await client.query("rollback");
-    throw error;
-  } finally {
-    client.release();
-  }
+export async function pickInstagram(id: string, result: IgResult) {
+  await assertAdmin();
+  if (!isIgPicUrl(result.pic)) throw new Error("Foto inválida");
+  await saveInstagram(id, result.username, result.fullName, result.pic);
   revalidatePath("/admin");
 }
 

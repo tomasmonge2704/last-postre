@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import type { AdminGuest, IgCandidate } from "@/lib/admin";
 import { Avatar } from "@/components/Avatar";
-import { deleteGuest, discardCandidates, pickCandidate, saveProfile } from "../actions";
+import { IgSearch } from "@/components/IgSearch";
+import { deleteGuest, discardCandidates, pickCandidate, pickInstagram, saveProfile, searchInstagram } from "../actions";
 
 type Other = { id: string; nickname: string; avatarUrl: string | null; gender: "m" | "f" };
 
@@ -192,6 +193,13 @@ export function ProfileEditor({
         </section>
       )}
 
+      <IgSearch
+        initial={guest.nicknames[0] ?? guest.name ?? ""}
+        search={searchInstagram}
+        pending={pending}
+        onPick={(r) => run(() => pickInstagram(guest.id, r), `✅ @${r.username} guardado`)}
+      />
+
       <section className="overflow-hidden rounded-3xl bg-chocolate text-crema">
         <Row label="Apodos (el primero es el principal)">
           <ChipsInput values={form.nicknames} onChange={(v) => set("nicknames", v)} placeholder="Agregar apodo y Enter" />
@@ -291,3 +299,4 @@ export function ProfileEditor({
     </div>
   );
 }
+

@@ -23,7 +23,7 @@ export function CompleteForm({ slot, gender: initialGender }: { slot: string; ge
           }
         });
       }}
-      className="mt-8 flex flex-col gap-4"
+      className="mt-6 flex flex-col gap-4"
     >
       <p className="text-center font-semibold text-cafe/80">Entraste como “{slot}”. Así te encuentran los demás:</p>
       <div className="flex flex-col gap-3 rounded-3xl bg-chocolate p-4">

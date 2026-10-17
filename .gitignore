@@ -40,4 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .neon
-data/ig-pending.json
+data/ig-pending*.json

@@ -1,21 +1,27 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentGuest } from "@/lib/session";
-import { CompleteForm } from "./CompleteForm";
+import { ConnectInstagram } from "./ConnectInstagram";
 
 async function Complete() {
   const me = await getCurrentGuest();
   if (!me) redirect("/entrar");
-  if (!me.placeholder) redirect("/");
-  return <CompleteForm slot={me.nickname} gender={me.gender} />;
+  if (me.instagram && !me.placeholder) redirect("/");
+  return (
+    <ConnectInstagram
+      slot={me.placeholder ? me.nickname : null}
+      initial={me.placeholder ? "" : (me.name ?? me.nickname)}
+      gender={me.gender}
+    />
+  );
 }
 
 export default function CompletarPage() {
   return (
-    <main className="flex flex-1 flex-col bg-gradient-to-b from-crema via-vainilla to-flan px-4 pt-16 pb-10 text-cafe">
+    <main className="flex flex-1 flex-col bg-gradient-to-b from-crema via-vainilla to-flan px-4 pt-14 pb-10 text-cafe">
       <h1 className="wordmark animate-pop-in text-center text-6xl text-flan">
-        ¡Bienvenida!
-        <span className="block text-3xl text-crema">contanos quién sos</span>
+        ¿Cuál sos?
+        <span className="block text-3xl text-crema">buscate en Instagram</span>
       </h1>
       <Suspense>
         <Complete />

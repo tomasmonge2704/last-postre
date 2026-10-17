@@ -3,11 +3,14 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getGuest } from "@/lib/guests";
-import { SESSION_COOKIE, getCurrentGuest } from "@/lib/session";
+import { IG_SKIP_COOKIE, SESSION_COOKIE, getCurrentGuest } from "@/lib/session";
 import { refresh } from "next/cache";
 import { pool } from "@/lib/db";
+import { igSearch, isIgPicUrl, saveInstagram } from "@/lib/instagram";
+import type { IgResult } from "@/components/IgSearch";
 import { createMatch, dealRound, getMatchForMember, revealRound } from "@/lib/games/espia";
 import { addUsedCards, getRoom, resetUsedCards, upsertRoom } from "@/lib/rooms";
+import { type NoteKind, addNote, deleteNote } from "@/lib/social";
 
 export async function enter(guestId: string) {
   const guest = await getGuest(guestId);
@@ -87,4 +90,61 @@ export async function completeProfile(input: { nickname: string; name: string; i
   );
   if (!rowCount) throw new Error("Este cupo ya lo completó otra persona 😅");
   redirect("/");
+}
+
+
+// Al entrar, quien no tiene IG conectado se busca y elige su propio perfil.
+async function guestWithoutInstagram() {
+  const me = await getCurrentGuest();
+  if (!me) redirect("/entrar");
+  if (me.instagram && !me.placeholder) throw new Error("Ya tenés tu Instagram conectado");
+  return me;
+}
+
+export async function searchMyInstagram(query: string) {
+  await guestWithoutInstagram();
+  return igSearch(query);
+}
+
+export async function claimInstagram(result: IgResult) {
+  const me = await guestWithoutInstagram();
+  if (!isIgPicUrl(result.pic)) throw new Error("Foto inválida");
+  const { rows } = await pool.query<{ placeholder: boolean; taken: boolean }>(
+    `select placeholder, exists(select 1 from guests where lower(instagram) = lower($2) and id <> $1) as taken
+     from guests where id = $1`,
+    [me.id, result.username],
+  );
+  if (rows[0]?.taken) throw new Error(`@${result.username} ya es de otro invitado 🤨`);
+  if (me.placeholder && !rows[0]?.placeholder) throw new Error("Este cupo ya lo completó otra persona 😅");
+  if (me.placeholder) {
+    const nickname = result.fullName?.trim().split(/\s+/)[0] || result.username;
+    await pool.query("update guests set nicknames = $2, name = $3, placeholder = false where id = $1", [
+      me.id,
+      [nickname],
+      result.fullName?.trim() || null,
+    ]);
+  }
+  await saveInstagram(me.id, result.username, result.fullName, result.pic);
+  redirect("/");
+}
+
+export async function skipInstagram() {
+  (await cookies()).set(IG_SKIP_COOKIE, "1", { path: "/", maxAge: 60 * 60 * 24 * 2, sameSite: "lax" });
+  redirect("/");
+}
+
+export async function addGuestNote(input: { aboutId: string; kind: NoteKind; body: string }) {
+  const me = await getCurrentGuest();
+  if (!me) throw new Error("Sin sesión");
+  const body = input.body.trim().slice(0, input.kind === "apodo" ? 40 : 280);
+  if (!body || input.aboutId === me.id || !["apodo", "comentario"].includes(input.kind)) return;
+  await addNote({ aboutId: input.aboutId, authorId: me.id, kind: input.kind, body });
+  refresh();
+}
+
+export async function deleteGuestNote(id: string) {
+  const me = await getCurrentGuest();
+  if (!me) throw new Error("Sin sesión");
+  await deleteNote(id, me.id);
+  refresh();
 }
