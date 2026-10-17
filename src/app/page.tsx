@@ -34,16 +34,16 @@ async function Home() {
 
       <section className="mt-8">
         <h2 className="text-xl font-bold">Para vos, {me.nickname} 🍮</h2>
-        <div className="-mx-4 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2">
+        <div className="mt-3 grid grid-cols-2 gap-3">
           {games.map((g) => (
             <Link
               key={g.top + g.bottom}
               href={g.href}
               aria-disabled={!g.ready}
-              className={`relative flex aspect-[3/4] w-44 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-3xl border-2 border-crema/30 bg-gradient-to-b ${g.bg} p-3 ${g.ready ? "" : "pointer-events-none opacity-60"}`}
+              className={`relative flex aspect-[3/4] flex-col justify-between overflow-hidden rounded-3xl border-2 border-crema/40 bg-gradient-to-b ${g.bg} p-3 shadow-[0_5px_0_var(--color-cafe)] transition active:translate-y-1 active:shadow-none ${g.ready ? "" : "pointer-events-none opacity-60"}`}
             >
-              <span className="text-center text-6xl">{g.emoji}</span>
-              <p className="wordmark text-center text-3xl text-crema">
+              <span className="mt-2 text-center text-5xl leading-tight">{g.emoji}</span>
+              <p className="wordmark text-center text-[1.6rem] leading-[0.95] text-crema">
                 <span className="text-flan">{g.top}</span>
                 <br />
                 {g.bottom}
