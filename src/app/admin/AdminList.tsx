@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { AdminGuest } from "@/lib/admin";
 import { Avatar } from "@/components/Avatar";
 import { GuestBadges } from "./GuestBadges";
+import { NewGuest } from "./NewGuest";
 
 const filters = {
   todos: { label: "Todos", test: () => true },
@@ -39,6 +40,8 @@ export function AdminList({ guests }: { guests: AdminGuest[] }) {
           {guests.length} invitados · {withIg} con IG
         </p>
       </div>
+
+      <NewGuest />
 
       <label className="flex items-center gap-3 rounded-full border-2 border-cafe bg-vainilla px-5 py-3 shadow-[0_4px_0_var(--color-cafe)]">
         <span className="text-xl">🔍</span>

@@ -171,3 +171,23 @@ export async function deleteCard(id: string) {
   await pool.query("delete from game_cards where id = $1", [id]);
   revalidatePath("/admin/juegos");
 }
+
+// Alta rápida: apodo + género. El resto se completa en el perfil (o lo completa el invitado si es un cupo).
+export async function createGuest(input: { nickname: string; gender: "m" | "f"; placeholder: boolean }) {
+  await assertAdmin();
+  const nickname = input.nickname.trim();
+  if (!nickname) throw new Error("Poné un apodo");
+  const base = slugGroup(nickname) || "invitado";
+  const { rows } = await pool.query<{ id: string }>("select id from guests where id = $1 or id like $1 || '-%'", [base]);
+  const taken = new Set(rows.map((r) => r.id));
+  let id = base;
+  for (let n = 2; taken.has(id); n++) id = `${base}-${n}`;
+  await pool.query("insert into guests (id, nicknames, gender, placeholder) values ($1, $2, $3, $4)", [
+    id,
+    [nickname],
+    input.gender,
+    input.placeholder,
+  ]);
+  revalidatePath("/admin");
+  redirect(`/admin/${id}`);
+}
