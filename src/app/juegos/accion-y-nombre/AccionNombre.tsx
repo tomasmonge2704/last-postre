@@ -14,7 +14,7 @@ import { logGameStart } from "@/app/actions";
 type Phase = "ready" | "spinning" | "choose" | "done";
 type Turn = { player: PublicGuest; target: PublicGuest | null; actions: Accion[]; chosen: Accion | null; phase: Phase };
 
-export function AccionNombre({ me, rooms, everyone, acciones }: { me: PublicGuest; rooms: Room[]; everyone: PublicGuest[]; acciones: Accion[] }) {
+export function AccionNombre({ me, rooms, acciones }: { me: PublicGuest; rooms: Room[]; acciones: Accion[] }) {
   const [players, setPlayers] = useState<Players>({ guests: [me], room: null });
   const [selected, setSelected] = useState<AccionCategory[]>(["suave", "fiesta"]);
   const [sheet, setSheet] = useState<"players" | "categories" | null>(null);
@@ -22,9 +22,9 @@ export function AccionNombre({ me, rooms, everyone, acciones }: { me: PublicGues
   const [turnIndex, setTurnIndex] = useState(0);
   const [turn, setTurn] = useState<Turn | null>(null);
 
-  // En sala la ruleta sale solo de la sala; en rápido, de todo el evento.
-  const pool = players.room ? players.room.guests : everyone;
-  const canStart = selected.length > 0 && pool.length >= 2 && (players.room ? players.room.guests.length >= 2 : true);
+  // La ruleta sale solo de los que están jugando (la sala o los elegidos).
+  const pool = players.room ? players.room.guests : players.guests;
+  const canStart = selected.length > 0 && pool.length >= 2;
 
   const newTurn = (player: PublicGuest): Turn => ({ player, target: null, actions: [], chosen: null, phase: "ready" });
 
@@ -101,7 +101,7 @@ export function AccionNombre({ me, rooms, everyone, acciones }: { me: PublicGues
         </li>
       </ul>
       <p className="mt-3 text-center text-sm font-semibold text-cafe/70">
-        {players.room ? `La ruleta sale de "${players.room.name}".` : "Modo rápido: la ruleta sale de todo el evento 🎲"}
+        {pool.length < 2 ? "Sumá al menos a alguien más para jugar." : players.room ? `La ruleta sale de "${players.room.name}".` : "La ruleta sale de los que están jugando 🎲"}
       </p>
 
       <div className="mt-auto pt-8">
