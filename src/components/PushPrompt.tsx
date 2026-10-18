@@ -12,11 +12,15 @@ function urlBase64ToUint8Array(base64: string) {
 }
 
 // Tarjeta para activar las notificaciones (matches, apodos, comentarios). En iPhone primero hay que instalar la app.
+const DISMISSED = "postre_push_dismissed";
+
 export function PushPrompt() {
   const [state, setState] = useState<State>("loading");
+  const [dismissed, setDismissed] = useState(true);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    queueMicrotask(() => setDismissed(localStorage.getItem(DISMISSED) === "1"));
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const standalone = matchMedia("(display-mode: standalone)").matches;
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -53,17 +57,27 @@ export function PushPrompt() {
     }
   }
 
-  if (state === "loading" || state === "unsupported" || state === "on") return null;
+  if (dismissed || state === "loading" || state === "unsupported" || state === "on") return null;
 
   return (
-    <div className="mt-4 flex items-center gap-3 rounded-3xl bg-crema/10 p-3">
+    <div className="relative mt-4 flex items-center gap-3 rounded-3xl bg-crema/10 p-3 pr-9">
+      <button
+        onClick={() => {
+          localStorage.setItem(DISMISSED, "1");
+          setDismissed(true);
+        }}
+        aria-label="No me interesa"
+        className="absolute top-2 right-2 grid size-7 place-items-center rounded-full text-sm text-crema/50 active:bg-crema/10"
+      >
+        ✕
+      </button>
       <span className="text-3xl">🔔</span>
       <div className="min-w-0 flex-1 text-sm">
         {state === "ios-install" && (
           <>
             <p className="font-bold">¿Querés que te avisemos?</p>
             <p className="text-crema/70">
-              En Safari tocá <b>≡</b> o <b>•••</b> → <b>Compartir</b> ⬆️ → <b>Agregar a inicio</b>. Después abrí Postre desde el ícono 🍮 y activá los avisos.
+              Tocá <b>Compartir</b> ⬆️ → <b>Agregar a inicio</b> (en Safari o Chrome). Después abrí Postre desde el ícono 🍮 y activá los avisos.
             </p>
           </>
         )}
